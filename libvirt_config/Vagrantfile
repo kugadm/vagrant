@@ -1,0 +1,46 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# ip => '192.168.10.5',
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'libvirt'
+
+nodes =[
+{ :hostname => 'ubuntu1-2004', :ip => '192.168.10.33', :network => 'ovirtmgmt', :memory => 4096, :cpu => 2, :boxname => "generic/ubuntu2004" },
+{ :hostname => 'k8s', :ip => '192.168.10.88', :network => 'ovirtmgmt', :memory => 8096, :cpu => 2, :boxname => "generic/ubuntu2204" },
+{ :hostname => 'master', :ip => '192.168.10.11', :network => 'ovirtmgmt', :memory => 2048, :cpu => 2, :boxname => "generic/ubuntu2204" },
+#{ :hostname => 'kgri', :ip => '192.168.10.22', :network => 'ovirtmgmt', :memory => 2048, :cpu => 2, :boxname => "generic/ubuntu2204" },
+#{ :hostname => 'ubuntu2-2204', :ip => '192.168.121.34', :network => 'vagrant-libvirt', :memory => 1024, :cpu => 2, :boxname => "generic/ubuntu2204" },
+#{ :hostname => 'centos1-7', :ip => '192.168.121.35', :network => 'vagrant-libvirt', :memory => 2048, :cpu => 2, :boxname => "centos/7" },
+]
+ 
+Vagrant.configure("2") do |config|
+  nodes.each do |node|
+  ##### DEFINE VM #####
+  config.vm.box_check_update = false
+  config.vm.define node[:hostname] do |nodeconfig|
+  nodeconfig.vm.box = node[:boxname] 
+  nodeconfig.vm.hostname = node[:hostname]
+
+#  nodeconfig.vm.network :private_network,
+#        :ip => "10.100.0.11",
+#        :libvirt__network_name => "my-network"
+
+
+#  nodeconfig.vm.network :private_network, ip: node[:ip], libvirt__network_name: node[:network]
+#  nodeconfig.vm.network :private_network, ip: node[:ip], type: "bridge", bridge: 'ovirtmgmt'
+#  nodeconfig.vm.network :public_network, :public_network  => "ovirtmgmt", :dev => 'ovirtmgmt'
+#  nodeconfig.vm.network :public_network, :public_network => "ovirtmgmt", :dev => 'ovirtmgmt', ip: node[:ip]
+#  nodeconfig.vm.network :public_network, ip: node[:ip], dev: node[:network]
+  nodeconfig.vm.network :public_network, ip: node[:ip], type: "bridge", bridge: 'ovirtmgmt', dev: node[:network]
+ #:bridged, :bridge => 'ovirtmgmt'
+#type: "dhcp", :bridge => 'enp2s0: Thunderbolt Ethernet'
+#bridge  type: "bridge", :bridge => 'ovirtmgmt'
+  nodeconfig.vm.provider :libvirt do |domain|
+    domain.memory = node[:memory]
+    domain.cpus = node[:cpu]
+#    config.ssh.host = '192.168.10.33'
+
+    end
+  end
+end
+
+end
